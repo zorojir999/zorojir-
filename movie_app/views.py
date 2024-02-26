@@ -4,29 +4,39 @@ from django.db.models import Avg, Count, OuterRef
 from .models import Movie, Director, Review
 from .serializers import MovieSerializer, DirectorSerializer
 
-class MovieList(generics.ListAPIView):
-    queryset = Movie.objects.all()
-    serializer_class = MovieSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+from django.db.models import Avg, Count, OuterRef
 
-class MovieDetail(generics.RetrieveAPIView):
+@api_view(['GET'])
+def movie_list(request):
     queryset = Movie.objects.all()
-    serializer_class = MovieSerializer
+    serializer = MovieSerializer(queryset, many=True)
+    return Response(serializer.data)
 
-class MovieReviewList(generics.ListAPIView):
+@api_view(['GET'])
+def movie_detail(request, pk):
+    try:
+        movie = Movie.objects.get(pk=pk)
+    except Movie.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    serializer = MovieSerializer(movie)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def movie_review_list(request):
     queryset = Movie.objects.prefetch_related('review_set')
-    serializer_class = MovieSerializer
+    for movie in queryset:
+        movie.avg_rating = movie.review_set.aggregate(Avg('stars'))['stars__avg']
+    serializer = MovieSerializer(queryset, many=True)
+    return Response(serializer.data)
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        for movie in queryset:
-            movie.avg_rating = movie.review_set.aggregate(Avg('stars'))['stars__avg']
-        return queryset
-
-class DirectorList(generics.ListAPIView):
+@api_view(['GET'])
+def director_list(request):
     queryset = Director.objects.annotate(movies_count=Count('movie'))
-    serializer_class = DirectorSerializer
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['movies_count'] = Movie.objects.filter(director_id=OuterRef('pk')).count()
-        return context
+    for director in queryset:
+        director.movies_count = Movie.objects.filter(director_id=director.pk).count()
+    serializer = DirectorSerializer(queryset, many=True)
+    return Response(serializer.data)
