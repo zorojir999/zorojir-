@@ -1,1 +1,0 @@
-SECRET_KEY=fojgvojjnwjrojv5489
