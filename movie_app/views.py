@@ -5,7 +5,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from rest_framework.authtoken.models import token
+
 
 @api_view(['GET'])
 def movie_list(request):
@@ -102,14 +102,4 @@ def movie_review_detail(request, id):
     elif request.method == 'DELETE':
         review.delete()
         return Response(status=204)
-
-# @api_view(['POST'])
-# def authorizator(request):
-#     if request.method == "POST":
-#         username = request.data.get('username')
-#         username = request.data.get('password ')
-#         user = authenticate(username=username, password = password)
-#         if user :
-#             try:
-#                 token = Token.object.get(user=user)
 
