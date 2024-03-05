@@ -1,42 +1,25 @@
-# serializers.py
+from django.contrib.auth import authenticate
 from rest_framework import serializers
-from django.contrib.auth import authenticate, get_user_model
+from .models import User, UserConfirmation
 
-User = get_user_model()
 
-class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+class UserRegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=255)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password')
+        fields = ['id', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
 
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-        return user
 
-class AuthSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=128, write_only=True)
 
-    def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
 
-        if username and password:
-            user = authenticate(username=username, password=password)
-            if user:
-                if user.is_active:
-                    data['user'] = user
-                else:
-                    raise serializers.ValidationError('Аккаунт не активирован. Проверьте вашу почту.')
-            else:
-                raise serializers.ValidationError('Неверное имя пользователя или пароль.')
-        else:
-            raise serializers.ValidationError('Укажите имя пользователя и пароль.')
+class UserConfirmationSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=255)
 
-        return data
+    class Meta:
+        model = UserConfirmation
+        fields = ['code', 'email']

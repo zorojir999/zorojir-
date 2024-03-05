@@ -6,5 +6,5 @@ urlpatterns = [
     path('movies/<int:pk>/', movie_detail, name='movie-detail'),
     path('directors/', director_list, name='director-list'),
     path('movies/reviews/', movie_review_list, name='movie-review-list'),
-    path('api/vl/login/autori')
+
 ]
