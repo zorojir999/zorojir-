@@ -1,9 +1,9 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from django.db.models import Count, Avg
+from django.db.models import Count
 from .models import Movie, Director, Review
 from .serializers import MovieSerializer, DirectorSerializer, ReviewSerializer
+
 
 class MovieList(generics.ListCreateAPIView):
     queryset = Movie.objects.all()
@@ -15,9 +15,11 @@ class MovieList(generics.ListCreateAPIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 class MovieDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
+
 
 class DirectorList(generics.ListCreateAPIView):
     queryset = Director.objects.annotate(movies_count=Count('movie'))
@@ -29,9 +31,11 @@ class DirectorList(generics.ListCreateAPIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 class DirectorDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Director.objects.all()
     serializer_class = DirectorSerializer
+
 
 class MovieReviewList(generics.ListCreateAPIView):
     queryset = Movie.objects.prefetch_related('review_set')
@@ -42,6 +46,7 @@ class MovieReviewList(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class MovieReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
